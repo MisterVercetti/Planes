@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="UTF-8">
+<title>Planes</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="">
+<style>
+</style>
+<body style="background-color: black; font-size: 20px;">
+  <canvas id="screen"></canvas>
+  <p id="score" style="color: white"></p>
+  <p id="timer" style="color: white"></p>
+</body>
+<script type="text/javascript">
+
+const CANVAS_HEIGHT = 800, CANVAS_WIDTH = 500;
+const SPRITE_UNIT = 40;
+const SPRITE_SPEED = 3;
+
+let canvas = document.getElementById("screen");
+let ctx = canvas.getContext("2d");
+canvas.setAttribute("width", CANVAS_WIDTH);
+canvas.setAttribute("height", CANVAS_HEIGHT);
+document.addEventListener('keydown', function(event){
+  handleInput(event.keyCode);
+});
+
+const LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
+const MOVE = [
+  {x: -SPRITE_SPEED, y: 0},
+  {x: 0, y: -SPRITE_SPEED},
+  {x: SPRITE_SPEED, y: 0},
+  {x: 0, y: SPRITE_SPEED}
+];
+const YELLOW = 0, GREEN = 1;
+
+let listPlanes= [];
+let sceneColor = YELLOW;
+let sceneLookDir, sceneMoveDir = UP;
+let animation;
+let previousTime;
+
+let score;
+const STARTING_TIME = 15;
+let timer;
+let scoreSpan = document.getElementById("score");
+let timerSpan = document.getElementById("timer");
+
+function setup() {
+  timer = STARTING_TIME;
+  score = 0;
+  timerSpan.innerHTML = timer + "s";
+  scoreSpan.innerHTML = "Score: " + score;
+  previousTime = new Date().getTime();
+  
+  resetScene();
+  clearInterval(animation);
+  animation = setInterval(animateFrame, 10);
+}
+
+
+function animateFrame() {
+  ctx.fillStyle = "cyan";
+  ctx.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+  ctx.fillStyle = "black";
+  for(let i = 0; i < listPlanes.length; i++) {
+    drawPlane(listPlanes[i].x, listPlanes[i].y, sceneLookDir, sceneColor);
+    listPlanes[i].x += MOVE[sceneMoveDir].x;
+    listPlanes[i].y += MOVE[sceneMoveDir].y; 
+    if(listPlanes[i].x > CANVAS_WIDTH + SPRITE_UNIT) listPlanes[i].x = -SPRITE_UNIT;
+    else if(listPlanes[i].x < -SPRITE_UNIT) listPlanes[i].x = CANVAS_WIDTH + SPRITE_UNIT;
+    else if(listPlanes[i].y > CANVAS_HEIGHT + SPRITE_UNIT) listPlanes[i].y = -SPRITE_UNIT;
+    else if(listPlanes[i].y < -SPRITE_UNIT) listPlanes[i].y = CANVAS_HEIGHT + SPRITE_UNIT;
+  }
+
+  
+  let now = new Date().getTime();
+  if(now - previousTime >= 1000){
+    if(timer == 0) {
+      alert("Game Over");
+      setup();
+    }
+    timer -= 1;
+    timerSpan.innerHTML = timer + "s";
+    previousTime = new Date().getTime();
+  }
+}
+
+
+function handleInput(code) {
+  let dir = code - 37;  // Left arrow
+  if(dir >= 0 && dir < 4) {
+    let checkDir = sceneColor == YELLOW ? sceneMoveDir : sceneLookDir;
+    if(dir == checkDir) {
+      score++;
+      timer++;
+      scoreSpan.innerHTML = "Score: " + score;
+      resetScene();
+    }
+    else {
+      alert("Game Over");
+      setup();
+    }
+  }
+}
+
+
+function resetScene() {
+  sceneColor = randomColor();
+  sceneLookDir = randomDirection();
+  sceneMoveDir = randomDirection();
+  listPlanes = [];
+  for(let i = 0; i < 10; i++) {
+    listPlanes.push(randomCoord());
+  }
+}
+
+
+function drawPlane(x, y, lookDir, color) {
+  ctx.translate(x, y);
+  ctx.rotate(lookDir * Math.PI / 2);
+  ctx.fillStyle = color == YELLOW ? "yellow" : "green";
+
+  ctx.beginPath();
+  ctx.moveTo(-SPRITE_UNIT, 0);
+  ctx.lineTo(SPRITE_UNIT, -SPRITE_UNIT);
+  ctx.lineTo(SPRITE_UNIT, SPRITE_UNIT);
+  ctx.moveTo(-SPRITE_UNIT, 0);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.moveTo(SPRITE_UNIT, 0);
+  ctx.lineTo(-SPRITE_UNIT, 0);
+  ctx.stroke();
+
+  ctx.resetTransform();
+  ctx.fillStyle = "black";
+}
+
+// Helpers
+
+function randomColor() {
+  return Math.random() < 0.5 ? YELLOW : GREEN;
+}
+
+function randomDirection() {
+  return Math.floor(Math.random() * 4);
+}
+
+function randomCoord() {
+  let min = -SPRITE_UNIT;
+  let maxX = CANVAS_WIDTH + SPRITE_UNIT;
+  let maxY = CANVAS_HEIGHT + SPRITE_UNIT;
+  return {
+    x: Math.random() * (maxX - min) + min, 
+    y: Math.random() * (maxY - min) + min
+  };
+}
+
+setup();
+
+</script>
+</html>
