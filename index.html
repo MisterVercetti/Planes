@@ -17,13 +17,22 @@ const CANVAS_HEIGHT = 800, CANVAS_WIDTH = 500;
 const SPRITE_UNIT = 40;
 const SPRITE_SPEED = 3;
 
+
 let canvas = document.getElementById("screen");
 let ctx = canvas.getContext("2d");
+let isKeyDown = false;
 canvas.setAttribute("width", CANVAS_WIDTH);
 canvas.setAttribute("height", CANVAS_HEIGHT);
-document.addEventListener('keydown', function(event){
-  handleInput(event.keyCode);
-});
+document.onkeydown = function(event){
+  event = event || window.event;
+  if(!isKeyDown) {
+    handleInput(event.keyCode);
+    isKeyDown = true;
+  }
+};
+document.onkeyup = function(event){
+  isKeyDown = false;
+};
 
 const LEFT = 0, UP = 1, RIGHT = 2, DOWN = 3;
 const MOVE = [
